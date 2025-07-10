@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome - Canteen System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 mb-4">🍽️ Canteen Food Pre-Ordering System</h1>
+        <p class="lead mb-5">Order your favorite meals in advance and skip the queue!</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 text-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user feature-icon"></i>
+                        <h5 class="card-title">Customer</h5>
+                        <p class="card-text">Browse menu, place orders, and track your food</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                            <a href="{% url 'customer_signup' %}" class="btn btn-outline-primary">Sign Up</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 text-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-store feature-icon"></i>
+                        <h5 class="card-title">Shop Owner</h5>
+                        <p class="card-text">Manage your menu, orders, and track sales</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                            <a href="{% url 'shop_owner_signup' %}" class="btn btn-outline-primary">Sign Up</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="text-center">
+                <i class="fas fa-clock feature-icon"></i>
+                <h4>Schedule Orders</h4>
+                <p>Pre-order your meals and choose your preferred pickup time</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="text-center">
+                <i class="fas fa-mobile-alt feature-icon"></i>
+                <h4>Mobile Friendly</h4>
+                <p>Access the system from any device - laptop, tablet, or mobile</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="text-center">
+                <i class="fas fa-receipt feature-icon"></i>
+                <h4>Digital Receipts</h4>
+                <p>Get instant PDF receipts for all your orders</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

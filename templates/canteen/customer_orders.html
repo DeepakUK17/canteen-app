@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - Canteen System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar p-3">
+            <h5 class="mb-4">Customer Panel</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'customer_dashboard' %}">
+                    <i class="fas fa-home"></i> Browse Menu
+                </a>
+                <a class="nav-link active" href="{% url 'customer_orders' %}">
+                    <i class="fas fa-shopping-bag"></i> My Orders
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link text-start p-0" style="border: none; background: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <h2><i class="fas fa-shopping-bag"></i> My Orders</h2>
+            
+            <div class="row">
+                {% for order in orders %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Order #{{ order.id }}</h6>
+                            <span class="badge status-badge 
+                                {% if order.status == 'pending' %}bg-warning
+                                {% elif order.status == 'accepted' %}bg-info
+                                {% elif order.status == 'ready' %}bg-success
+                                {% elif order.status == 'rejected' %}bg-danger
+                                {% elif order.status == 'cancelled' %}bg-secondary
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Shop:</strong> {{ order.shop_owner.shop_name }}</p>
+                            <p><strong>Order Time:</strong> {{ order.order_time|date:"M d, Y H:i" }}</p>
+                            <p><strong>Scheduled:</strong> {{ order.scheduled_time|date:"M d, Y H:i" }}</p>
+                            <p><strong>Total:</strong> (&#8377;){{ order.total_amount }}</p>
+                            
+                            <h6>Items:</h6>
+                            <ul class="list-unstyled">
+                                {% for item in order.items.all %}
+                                <li>{{ item.food.name }} x {{ item.quantity }}</li>
+                                {% endfor %}
+                            </ul>
+                            
+                            {% if order.status == 'accepted' or order.status == 'ready' %}
+                            <div class="alert alert-warning mt-2">
+                                <strong>Note:</strong> To cancel this order, please visit the shop and request cancellation.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> You haven't placed any orders yet.
+                        <br><br>
+                        <a href="{% url 'customer_dashboard' %}" class="btn btn-primary">Browse Menu</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

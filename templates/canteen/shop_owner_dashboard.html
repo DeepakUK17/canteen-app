@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop Owner Dashboard - Canteen System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar p-3">
+            <h5 class="mb-4">{{ shop_owner_profile.shop_name }}</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="{% url 'shop_owner_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link" href="{% url 'manage_orders' %}">
+                    <i class="fas fa-clipboard-list"></i> Orders
+                </a>
+                <a class="nav-link" href="{% url 'manage_food_items' %}">
+                    <i class="fas fa-utensils"></i> Menu Items
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link text-start p-0" style="border: none; background: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+            <p class="text-muted">Welcome back, {{ shop_owner_profile.name }}!</p>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ total_orders }}</h4>
+                                    <p class="mb-0">Today's Orders</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-shopping-bag fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>&#8377;{{ total_income }}</h4>
+                                    <p class="mb-0">Today's Income</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-rupee-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ pending_orders }}</h4>
+                                    <p class="mb-0">Pending Orders</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-clipboard-list"></i> Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'manage_orders' %}" class="btn btn-primary">
+                                    <i class="fas fa-clipboard-list"></i> Manage Orders
+                                </a>
+                                <a href="{% url 'add_food_item' %}" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> Add New Food Item
+                                </a>
+                                <a href="{% url 'manage_food_items' %}" class="btn btn-info">
+                                    <i class="fas fa-utensils"></i> Manage Menu
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Tips</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Keep your menu items updated</li>
+                                <li><i class="fas fa-check text-success"></i> Respond to orders promptly</li>
+                                <li><i class="fas fa-check text-success"></i> Update stock regularly</li>
+                                <li><i class="fas fa-check text-success"></i> Add appealing food images</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Dashboard - Canteen System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+<div class="col-md-3 col-lg-2 sidebar p-3">
+    <h5 class="mb-4">Welcome, {{ customer_profile.name }}!</h5>
+    <nav class="nav flex-column">
+        <a class="nav-link active" href="{% url 'customer_dashboard' %}">
+            <i class="fas fa-home"></i> Browse Menu
+        </a>
+        <a class="nav-link" href="{% url 'customer_orders' %}">
+            <i class="fas fa-shopping-bag"></i> My Orders
+        </a>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="nav-link btn btn-link text-start p-0" style="border: none; background: none;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    </nav>
+</div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-utensils"></i> Browse Menu</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cartModal">
+                    <i class="fas fa-shopping-cart"></i> Cart (<span id="cart-count">0</span>)
+                </button>
+            </div>
+            
+            <div class="row" id="food-items">
+                {% for food in foods %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card food-card">
+                        {% if food.image %}
+                            <img src="{{ food.image.url }}" class="card-img-top food-image" alt="{{ food.name }}">
+                        {% else %}
+                            <div class="card-img-top food-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-utensils fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ food.name }}</h5>
+                            <p class="card-text">
+                                <strong>(&#8377;){{ food.price }}</strong><br>
+                                <small class="text-muted">Stock: {{ food.stock }}</small><br>
+                                <small class="text-muted">{{ food.shop_owner.shop_name }}</small>
+                            </p>
+                            <div class="quantity-controls mb-3">
+                                <button class="quantity-btn" onclick="decreaseQuantity({{ food.id }})">-</button>
+                                <span class="mx-2" id="quantity-{{ food.id }}">0</span>
+                                <button class="quantity-btn" onclick="increaseQuantity({{ food.id }}, {{ food.stock }})">+</button>
+                            </div>
+                            <button class="btn btn-primary btn-sm w-100" onclick="addToCart({{ food.id }}, '{{ food.name }}', {{ food.price }}, '{{ food.shop_owner.shop_name }}')">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> No food items available at the moment.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Modal -->
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Shopping Cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cart-items"></div>
+                <div class="mt-3">
+                    <label for="scheduled-time" class="form-label">Scheduled Pickup/Delivery Time</label>
+                    <input type="datetime-local" class="form-control" id="scheduled-time" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto">
+                    <strong>Total: (&#8377;)<span id="cart-total">0.00</span></strong>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let cart = [];
+
+function increaseQuantity(foodId, maxStock) {
+    const quantityElement = document.getElementById(`quantity-${foodId}`);
+    let quantity = parseInt(quantityElement.textContent);
+    if (quantity < maxStock) {
+        quantity++;
+        quantityElement.textContent = quantity;
+    }
+}
+
+function decreaseQuantity(foodId) {
+    const quantityElement = document.getElementById(`quantity-${foodId}`);
+    let quantity = parseInt(quantityElement.textContent);
+    if (quantity > 0) {
+        quantity--;
+        quantityElement.textContent = quantity;
+    }
+}
+
+function addToCart(foodId, foodName, price, shopName) {
+    const quantity = parseInt(document.getElementById(`quantity-${foodId}`).textContent);
+    if (quantity === 0) {
+        alert('Please select quantity first');
+        return;
+    }
+    
+    const existingItem = cart.find(item => item.food_id === foodId);
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        cart.push({
+            food_id: foodId,
+            name: foodName,
+            price: price,
+            quantity: quantity,
+            shop_name: shopName
+        });
+    }
+    
+    document.getElementById(`quantity-${foodId}`).textContent = '0';
+    updateCartDisplay();
+}
+
+function updateCartDisplay() {
+    const cartCount = document.getElementById('cart-count');
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+    
+    cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    let total = 0;
+    cartItems.innerHTML = '';
+    
+    cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        
+        cartItems.innerHTML += `
+            <div class="cart-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6>${item.name}</h6>
+                        <small class="text-muted">${item.shop_name}</small>
+                    </div>
+                    <div class="text-end">
+                        <div>(&#8377;)${item.price} x ${item.quantity} = (&#8377;)${itemTotal.toFixed(2)}</div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    cartTotal.textContent = total.toFixed(2);
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartDisplay();
+}
+
+function placeOrder() {
+    if (cart.length === 0) {
+        alert('Cart is empty');
+        return;
+    }
+    
+    const scheduledTime = document.getElementById('scheduled-time').value;
+    if (!scheduledTime) {
+        alert('Please select scheduled time');
+        return;
+    }
+    
+    const orderData = {
+        cart_items: cart,
+        scheduled_time: scheduledTime
+    };
+    
+    fetch('{% url "place_order" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Order placed successfully!');
+            cart = [];
+            updateCartDisplay();
+            document.getElementById('cartModal').querySelector('.btn-close').click();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while placing the order');
+    });
+}
+
+// Set minimum datetime to current time
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('scheduled-time').min = now.toISOString().slice(0, 16);
+});
+</script>
+{% endblock %}

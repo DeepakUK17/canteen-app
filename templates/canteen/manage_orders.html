@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Orders - Canteen System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar p-3">
+            <h5 class="mb-4">Shop Owner Panel</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'shop_owner_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link active" href="{% url 'manage_orders' %}">
+                    <i class="fas fa-clipboard-list"></i> Orders
+                </a>
+                <a class="nav-link" href="{% url 'manage_food_items' %}">
+                    <i class="fas fa-utensils"></i> Menu Items
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link text-start p-0" style="border: none; background: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <h2><i class="fas fa-clipboard-list"></i> Manage Orders</h2>
+            
+            <div class="row">
+                {% for order in orders %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Order #{{ order.id }}</h6>
+                            <span class="badge status-badge 
+                                {% if order.status == 'pending' %}bg-warning
+                                {% elif order.status == 'accepted' %}bg-info
+                                {% elif order.status == 'ready' %}bg-primary
+                                {% elif order.status == 'collected' %}bg-success
+                                {% elif order.status == 'rejected' %}bg-danger
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Customer:</strong> {{ order.customer.name }}</p>
+                            <p><strong>Order Time:</strong> {{ order.order_time|date:"M d, Y H:i" }}</p>
+                            <p><strong>Scheduled:</strong> {{ order.scheduled_time|date:"M d, Y H:i" }}</p>
+                            <p><strong>Total:</strong> (&#8377;){{ order.total_amount }}</p>
+                            
+                            <h6>Items:</h6>
+                            <ul class="list-unstyled">
+                                {% for item in order.items.all %}
+                                <li>{{ item.food.name }} x {{ item.quantity }}</li>
+                                {% endfor %}
+                            </ul>
+                            
+                            {% if order.status == 'pending' %}
+                            <div class="d-grid gap-2">
+                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="accepted">
+                                    <button type="submit" class="btn btn-success btn-sm w-100">Accept Order</button>
+                                </form>
+                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">Reject Order</button>
+                                </form>
+                            </div>
+                        {% elif order.status == 'accepted' %}
+                        <div class="d-grid gap-2">
+                            <form method="post" action="{% url 'update_order_status' order.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="ready">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Mark as Ready</button>
+                            </form>
+                            <form method="post" action="{% url 'update_order_status' order.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="cancelled">
+                                <button type="submit" class="btn btn-danger btn-sm w-100">Cancel Order</button>
+                            </form>
+                        </div>
+                        {% elif order.status == 'ready' %}
+                        <form method="post" action="{% url 'update_order_status' order.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="collected">
+                            <button type="submit" class="btn btn-success btn-sm w-100">Mark as Collected</button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status in 'accepted ready collected' %}
+                        <a href="{% url 'generate_receipt' order.id %}" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                            <i class="fas fa-download"></i> Generate Receipt
+                        </a>
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> No orders received yet.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

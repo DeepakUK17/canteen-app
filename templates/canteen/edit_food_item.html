@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Food Item - Canteen System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar p-3">
+            <h5 class="mb-4">Shop Owner Panel</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'shop_owner_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link" href="{% url 'manage_orders' %}">
+                    <i class="fas fa-clipboard-list"></i> Orders
+                </a>
+                <a class="nav-link active" href="{% url 'manage_food_items' %}">
+                    <i class="fas fa-utensils"></i> Menu Items
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link text-start p-0" style="border: none; background: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-edit"></i> Edit Food Item</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Food Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ food.name }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Price (&#8377;)</label>
+                                    <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ food.price }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="stock" class="form-label">Stock Quantity</label>
+                                    <input type="number" class="form-control" id="stock" name="stock" value="{{ food.stock }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="available" name="available" {% if food.available %}checked{% endif %}>
+                                        <label class="form-check-label" for="available">
+                                            Available for ordering
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Food Image</label>
+                                    {% if food.image %}
+                                        <div class="mb-2">
+                                            <img src="{{ food.image.url }}" alt="{{ food.name }}" class="img-thumbnail" style="max-height: 200px;">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <small class="form-text text-muted">Leave empty to keep current image</small>
+                                </div>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{% url 'manage_food_items' %}" class="btn btn-secondary">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">Update Item</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
